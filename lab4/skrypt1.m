@@ -6,6 +6,13 @@ p2 = 10;
 n = 5;
 
 [A, b] = generate_problem(p1, p2, n);
+% A = [
+%     19 15 20 14 21
+%     15 19 20 14 23
+%     20 20 32 20 28
+%     14 14 20 14 19
+%     21 23 28 19 30];
+% b = [3 3 1 2 3]';
 display(A);
 display(b);
 
@@ -32,6 +39,7 @@ display(xNS);
 disp(norm(xExact - xNS));
 
 % etap 3
+disp("Solving with BFGS");
 [xBFGS, ~, iterBFGS, h] = BFGS(@(x) fun(x, A, b), x0, eps, "Anal", 10000);
 display(iterBFGS);
 display(xBFGS);
@@ -45,3 +53,6 @@ disp(norm(inv(A) - h));
 
 % etap 4
 testy1(p1, p2, 100);
+
+% etap 5
+testy2();

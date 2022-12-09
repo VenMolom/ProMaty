@@ -1,10 +1,11 @@
-function [xBFGS, fval, it, last_h] = BFGS(fun, x0, eps, step_alg, max_iter)
+function [xBFGS, fval, it, last_h, grad_norms] = BFGS(fun, x0, eps, step_alg, max_iter)
 
 I = eye(length(x0));
 H = I;
 x = x0;
 iter = 0;
 [~, grad, A] = fun(x);
+grad_norms = [];
 
 while iter < max_iter
     iter = iter + 1;
@@ -13,6 +14,7 @@ while iter < max_iter
         break;
     end
 
+    grad_norms = [grad_norms, norm(grad)];
     d = -H * grad;
 
     if step_alg == "Anal"
