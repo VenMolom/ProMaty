@@ -1,22 +1,23 @@
-function [x, flag, iter, lambda]=ZFK(A, b, c, w, x0, e)
+function [x, flag, iter, lambda]=ZFK(A, b, c, w, solver, x0, eps)
+% flag:
+%   2 - converged to solution that is not optimal
+%   1 - converged to optimal solution (within eps)
+%   0 - iterations ended, did not reach optimal solution
 
 assert(w > 1)
 rk = 1;
 iter = 0;
 xk = x0;
+lambda = 0;
 
-pk = @(x, rk) rk * (max(0, constraints(x, c))^2 + max(0, -x)^2);
+pk = @(x, rk) rk * (max(0, constraints(x, c))^2 + max(0, -x)' * max(0, -x));
 fk = @(x, rk) fun(x, A, b) + pk(x, rk);
-
-gradFk = @(x, rk) fun(x, A, b)
-
-opts = optimoptions(@fminsearch, 'TolX', eps, 'TolFun', eps);
 
 while iter < 1000
     % solve current problem
-    [x_next, ~, flag] = fminsearch(@(x) fk(x, rk), xk, opts);
+    [x_next, flag] = solver(@(x) fk(x, rk), xk);
     
-    if flag < 1
+    if flag < 0
         x = xk;
         return;
     end
@@ -24,9 +25,9 @@ while iter < 1000
    % check stop criteriums
    if pk(x_next, rk) < eps || ...
        norm(x_next - xk, 2) < eps || ...
-       norm(gradFk(x_next, rk), 2) < eps
-        flag = 1;
+       norm(gradFk(A, b, c, x_next, rk), 2) < eps
         x = x_next;
+        [lambda, flag] = WKT(x, A, b, c, 1);
         return;
    end
 
@@ -36,6 +37,36 @@ while iter < 1000
 end
 
 x = xk;
-flag = 0;
+[lambda, flag] = WKT(x, A, b, c, 0);
+
+end
+
+function grad = gradFk(A, b, c, x, rk)
+
+[~, gradF] = fun(x, A, b);
+[C, gradC] = constraints(x, c);
+gradP = rk * (2 * max(0, C) * gradC - 2 * max(0, -x));
+
+grad = gradF + gradP;
+
+end
+
+function [lambda, flag] = WKT(x, A, b, c, flag)
+
+[~, gradF] = fun(x, A, b);
+[~, gradC] = constraints(x, c);
+G = [gradC, -diag(x)];
+
+lambda = linsolve(G, -gradF);
+
+if sum(lambda(lambda < 0)) > 0
+    if flag == 1
+        flag = 2;
+    else
+        flag = 0;
+    end
+    return;
+end
+
 
 end

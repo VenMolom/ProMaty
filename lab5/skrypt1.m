@@ -18,22 +18,27 @@ eps = 1e-8;
 
 % etap 1.
 disp("Solving using fmincon");
-[x_fmin, ~, ~, output] = solve_fmincon(A, b, c, x0, eps);
+[x_fmin, ~, flag, output] = solve_fmincon(A, b, c, x0, eps);
 disp(x_fmin);
+disp(flag);
 disp(output);
 
 % etap 2.
 disp("Solving using ZFK with fminsearch");
-[x_zfk, ~, ~, it] = solve_ZFK(A, b, c, x0, true, eps);
+[x_zfk, ~, flag, it, lambda] = solve_ZFK(A, b, c, x0, true, eps);
 disp(x_zfk);
 disp(it);
+disp(flag);
+disp(lambda);
 
 disp(norm(x_zfk - x_fmin, 2));
 
 % etap 3.
 disp("Solving using ZFK with NelderMead");
-[x_zfk, ~, ~, it] = solve_ZFK(A, b, c, x0, false, eps);
+[x_zfk, ~, flag, it, lambda] = solve_ZFK(A, b, c, x0, false, eps);
 disp(x_zfk);
 disp(it);
+disp(flag);
+disp(lambda);
 
 disp(norm(x_zfk - x_fmin, 2));

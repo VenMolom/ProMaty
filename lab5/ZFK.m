@@ -1,4 +1,8 @@
 function [x, flag, iter, lambda]=ZFK(A, b, c, w, solver, x0, eps)
+% flag:
+%   2 - converged to solution that is not optimal
+%   1 - converged to optimal solution (within eps)
+%   0 - iterations ended, did not reach optimal solution
 
 assert(w > 1)
 rk = 1;
@@ -22,8 +26,8 @@ while iter < 1000
    if pk(x_next, rk) < eps || ...
        norm(x_next - xk, 2) < eps || ...
        norm(gradFk(A, b, c, x_next, rk), 2) < eps
-        flag = 1;
         x = x_next;
+        [lambda, flag] = WKT(x, A, b, c, 1, eps);
         return;
    end
 
@@ -33,15 +37,38 @@ while iter < 1000
 end
 
 x = xk;
-flag = 0;
+[lambda, flag] = WKT(x, A, b, c, 0, eps);
 
 end
+
 function grad = gradFk(A, b, c, x, rk)
 
 [~, gradF] = fun(x, A, b);
-[C, gradC] = constraints(x, c);
+[C, ~, gradC] = constraints(x, c);
 gradP = rk * (2 * max(0, C) * gradC - 2 * max(0, -x));
 
 grad = gradF + gradP;
+
+end
+
+function [lambda, flag] = WKT(x, A, b, c, flag, eps)
+
+[~, gradF] = fun(x, A, b);
+[C, ~, gradC] = constraints(x, c);
+G = [gradC, -eye(length(x))];
+
+lambda = linsolve(G, -gradF);
+
+complete = lambda(1) * C + lambda(2:end)' * -x;
+if sum(lambda(lambda < -eps)) > 0 || ...
+    C > 100 * eps || sum(x(-x > eps)) > 0 || ...
+    abs(complete) > 100 * eps
+    if flag == 1
+        flag = 2;
+    end
+    return;
+end
+
+flag = 1;
 
 end
