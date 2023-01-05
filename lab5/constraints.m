@@ -6,4 +6,3 @@ Ceq = 0;
 gradCeq = zeros(length(x), 1);
 
 end
-

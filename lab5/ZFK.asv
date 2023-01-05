@@ -1,0 +1,41 @@
+function [x, flag, iter, lambda]=ZFK(A, b, c, w, x0, e)
+
+assert(w > 1)
+rk = 1;
+iter = 0;
+xk = x0;
+
+pk = @(x, rk) rk * (max(0, constraints(x, c))^2 + max(0, -x)^2);
+fk = @(x, rk) fun(x, A, b) + pk(x, rk);
+
+gradFk = @(x, rk) fun(x, A, b)
+
+opts = optimoptions(@fminsearch, 'TolX', eps, 'TolFun', eps);
+
+while iter < 1000
+    % solve current problem
+    [x_next, ~, flag] = fminsearch(@(x) fk(x, rk), xk, opts);
+    
+    if flag < 1
+        x = xk;
+        return;
+    end
+
+   % check stop criteriums
+   if pk(x_next, rk) < eps || ...
+       norm(x_next - xk, 2) < eps || ...
+       norm(gradFk(x_next, rk), 2) < eps
+        flag = 1;
+        x = x_next;
+        return;
+   end
+
+   rk = w * rk;
+   xk = x_next;
+   iter = iter + 1;
+end
+
+x = xk;
+flag = 0;
+
+end
