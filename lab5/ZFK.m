@@ -23,8 +23,8 @@ while iter < 1000
     end
 
    % check stop criteriums
-   if pk(x_next, rk) < eps || ...
-       norm(x_next - xk, 2) < eps || ...
+   pk_next = pk(x_next, rk);
+   if pk_next < eps || ...
        norm(gradFk(A, b, c, x_next, rk), 2) < eps
         x = x_next;
         [lambda, flag] = WKT(x, A, b, c, 1, eps);
@@ -57,12 +57,13 @@ function [lambda, flag] = WKT(x, A, b, c, flag, eps)
 [C, ~, gradC] = constraints(x, c);
 G = [gradC, -eye(length(x))];
 
-lambda = linsolve(G, -gradF);
+b = [-gradF; 0];
+A = [G; C, -x'];
 
-complete = lambda(1) * C + lambda(2:end)' * -x;
-if sum(lambda(lambda < -eps)) > 0 || ...
-    C > 100 * eps || sum(x(-x > eps)) > 0 || ...
-    abs(complete) > 100 * eps
+lambda = linsolve(A, b);
+
+if sum(lambda < -0.001) > 0 % value of constraints <= 0
+
     if flag == 1
         flag = 2;
     end

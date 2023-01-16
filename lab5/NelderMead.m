@@ -10,58 +10,69 @@ iter = 0;
 n = length(x0);
 p = lambda * eye(n, n + 1) + x0;
 
+pv = zeros(n+1, 1);
+for i = 1:n+1
+    pv(i) = f(p(:, i));
+end
+
+[pv, i] = sort(pv);
+p = p(:, i);
+
 while iter < max_iter
-    pv = zeros(n+1, 1);
-    for i = 1:n+1
-        pv(i) = f(p(:, i));
-    end
+    pmax = p(:, end);
+    pvmax = pv(end);
+    pmin = p(:, 1);
+    pvmin = pv(1);
 
-    [pvmin, idx] = min(pv);
-    pmin = p(:, idx);
-    pv(idx) = -Inf;
-
-    [pvmax, idx] = max(pv);
-    pmax = p(:, idx);
-    
-    norms = zeros(n+1, 1);
-    for i = 1:n+1
-        norms(i) = norm(pmin - p(i), 2);
-    end
-
-    if max(norms) < eps
+    if max(max(abs(p - pmin))) < eps
         x = pmin;
         flag = 1;
         return;
     end
 
-    pcenter = 1 / n * (sum(p, 2) - pmax);
+    pcenter = (sum(p, 2) - pmax) / n;
     pr = pcenter + a * (pcenter - pmax);
 
+    % reflection
     pvr = f(pr);
     if pvr < pvmin
+        % attempt expansion
         pe = pcenter + b * (pr - pcenter);
-        if f(pe) < pvr
-            pmax = pe;
+        pve = f(pe);
+        if pve < pvr
+            % expansion accepted
+            p(:, end) = pe;
+            pv(end) = pve;
         else
-            pmax = pr;
+            % expansion failed - reflection
+            p(:, end) = pr;
+            pv(end) = pvr;
         end
     else
-        if pvmin <= pvr && pvr < pvmax
-            pmax = pr;
+        if pvr < pvmax
+            % reflection accepted
+            p(:, end) = pr;
+            pv(end) = pvr;
         else
+            % attempt contraction
             pc = pcenter + y * (pmax - pcenter);
-            if pc >= pvmax
-                % redukcja
+            pvc = f(pc);
+            if pvc >= pvmax
+                % contraction failed - reduction
                 p = d * (p + pmin);
-                iter = iter + 1;
-                continue;
+                for i = 1:n+1
+                    pv(i) = f(p(:, i));
+                end
             else
-                pmax = pc;
+                % contraction accepted
+                p(:, end) = pc;
+                pv(end) = pvc;
             end
         end
     end
 
-    p(:, idx) = pmax;
+    [pv, i] = sort(pv);
+    p = p(:, i);
     iter = iter + 1;
 end
 
