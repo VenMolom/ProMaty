@@ -3,36 +3,44 @@ function test(N)
 dobre = 0;
 zle = 0;
 
-linprog_iter = zeros(1, N);
-sympleks_iter = zeros(1, N);
+linprog_iter = zeros(N, 1);
+ipm_iter = zeros(N, 1);
+norm_f = zeros(N, 1);
+norm_x = zeros(N, 1);
+norm_l = zeros(N, 1);
 
-solution_type_count = zeros(1, 3);
-
-f = zeros(8, 1);
+c = (1:8)';
+b = [zeros(3, 1); ones(2, 1)];
 lb = zeros(8, 1);
-beq = [zeros(3, 1); ones(2, 1)];
-opt = optimoptions("linprog", "Algorithm", "dual-simplex", "Display", "off");
+
+max_iter = 1000;
+eps = 1e-8;
+M = 1e8;
+
+opt = optimoptions("linprog", "Algorithm", "interior-point", "Display", "off");
 for n = 1:N
     P = randi([0, 10], 3, 4);
     Q = randi([0, 10], 3, 4);
 
-    Aeq = [P, -Q; ones(1, 4), zeros(1, 4); zeros(1, 4), ones(1, 4)];
+    A = [P, -Q; ones(1, 4), zeros(1, 4); zeros(1, 4), ones(1, 4)];
    
-    [~, ~, flag_lin, out] = linprog(f, [], [], Aeq, beq, lb, [], opt);
-    [~, ~, flag_sym, iter_sym] = sympleks(f, Aeq, beq, SymplexOptions(false, 1e-10));
+    [x, f, flag_lin, out, l] = linprog(-c, [], [], A, b, lb, [], opt);
+    [x_ipm, f_ipm, flag_ipm, it_ipm, l_ipm] = IPM(c, A, b, max_iter, eps, M);
     
-    if (flag_lin > 0 && flag_sym > 0) || (flag_lin == flag_sym)
-        dobre = dobre + 1;
-        linprog_iter(n) = out.iterations;
-        sympleks_iter(n) = iter_sym;
+    if flag_lin >= 0
+        l = l.eqlin;
+    else 
+        l = [];
+    end
 
-        if flag_lin > 0
-            solution_type_count(1) = solution_type_count(1) + 1;
-        elseif flag_lin == -2
-            solution_type_count(2) = solution_type_count(2) + 1;
-        elseif flag_lin == -3
-            solution_type_count(3) = solution_type_count(3) + 1;
-        end
+    linprog_iter(n) = out.iterations;
+    ipm_iter(n) = it_ipm;
+    norm_f(n) = norm(f - f_ipm);
+    norm_x(n) = norm(x - x_ipm);
+    norm_l(n) = norm(l - l_ipm);
+
+    if (flag_lin >= 0 && flag_ipm >= 0) || (flag_lin < 0 && flag_ipm < 0)
+        dobre = dobre + 1;
     else
         zle = zle + 1;
     end
@@ -43,24 +51,26 @@ disp(dobre);
 disp("Incorrect solutions:");
 disp(zle);
 
-figure
-histogram(linprog_iter);
-title("Histogram iteracji dla metody linprog");
+figure(1)
+plot(ipm_iter)
+title("Ilość iteracji metody IPM w kolejnych testach");
 
-figure
-histogram(sympleks_iter);
-title("Histogram iteracji dla metody sympleks");
+figure(2)
+semilogy(norm_f)
+title("Norma różnicy wartości funkcji z linprog i IPM w kolejnych testach");
+
+figure(3)
+semilogy(norm_x)
+title("Norma różnicy rozwiązania z linprog i IPM w kolejnych testach");
+
+figure(4)
+semilogy(norm_l)
+title("Norma różnicy mnożników Lagrange'a z linprog i IPM w kolejnych testach");
 
 disp("Average iterations for linprog:");
 disp(mean(linprog_iter));
 
-disp("Average iterations for sympleks:");
-disp(mean(sympleks_iter));
-
-figure
-bar(solution_type_count);
-xt = get(gca, 'XTick');
-set(gca, 'XTick', xt, 'XTickLabel', {'Posiadające RO', 'Sprzeczne', 'Nieograniczone'})
-title("Rozkład typów zadań");
+disp("Average iterations for IPM:");
+disp(mean(ipm_iter));
 
 end
