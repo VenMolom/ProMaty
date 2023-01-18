@@ -1,14 +1,19 @@
 function [x, lambda] = solve_linprog_both(P, Q)
 
 disp("Solving primary problem")
-[x, lambda, flag] = solve_linprog(P, Q);
+[x, fp, xlambda, flag] = solve_linprog(P, Q);
 
 disp("Solving dual problem")
-y = solve_linprog_dual(P, Q);
+[y, fd, ylambda] = solve_linprog_dual(P, Q);
 
 display(x)
-display(lambda)
+display(fp)
+display(xlambda)
 display(y)
+display(fd)
+display(ylambda)
+
+lambda = xlambda;
 
 point = [];
 if flag == 1 

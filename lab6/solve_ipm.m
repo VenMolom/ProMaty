@@ -8,9 +8,10 @@ eps = 1e-8;
 M = 1e8;
 
 disp("Solving with IPM")
-[x, ~, flag, ~, lambda] = IPM(f, A, b, 1000, eps, M);
+[x, f, flag, ~, lambda] = IPM(f, A, b, 1000, eps, M);
 
 display(x)
+display(f)
 display(flag)
 display(lambda)
 

@@ -56,10 +56,10 @@ while iter < max_it
     % calculate dk
     X1 = diag(1./x);
     Z = diag(z);
-    K = [zeros(m, m) A; A', X1*Z];
-    l = [ro - r * 1./y; sigma + r * 1./x - z];
+    K = [zeros(m, m) A; A' X1*Z];
+    l = [ro; sigma + r * 1./x - z];
 
-    sol = linsolve(K, l);
+    [sol, ~] = linsolve(K, l);
     dy = sol(1:m);
     dx = sol(m+1:end);
     dz = X1 * (r * ones(n, 1) - diag(x) * Z * ones(n, 1) - Z * dx);
