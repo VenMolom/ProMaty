@@ -39,6 +39,10 @@ for n = 1:N
     norm_x(n) = norm(x - x_ipm);
     norm_l(n) = norm(l - l_ipm);
 
+    if norm_x(n) > 1e-4 || norm_l(n) > 1e-4;
+        a = 5;
+    end
+
     if (flag_lin >= 0 && flag_ipm >= 0) || (flag_lin < 0 && flag_ipm < 0)
         dobre = dobre + 1;
     else

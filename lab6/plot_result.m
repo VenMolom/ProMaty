@@ -1,9 +1,9 @@
-function plot_result(P, Q, x)
+function plot_result(P, Q, x, n)
 %PLOT_RESULT Plot results of two tetrahedrons intersection.
 
 idx = [1 2 3; 2 3 4; 1 3 4; 1 2 4];
 
-figure
+figure(n)
 view(3)
 axis auto
 grid on

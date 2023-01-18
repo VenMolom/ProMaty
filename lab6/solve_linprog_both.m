@@ -1,4 +1,4 @@
-function solve_linprog_both(P, Q)
+function [x, lambda] = solve_linprog_both(P, Q)
 
 disp("Solving primary problem")
 [x, lambda, flag] = solve_linprog(P, Q);
@@ -17,7 +17,7 @@ if flag == 1
     display(point);
 end
 
-plot_result(P, Q, point);
+plot_result(P, Q, point, 98);
 
 end
 

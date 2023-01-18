@@ -1,4 +1,4 @@
-function solve_ipm(P, Q)
+function [x, lambda] = solve_ipm(P, Q)
 
 f = (1:8)';
 A = [P, -Q; ones(1, 4), zeros(1, 4); zeros(1, 4), ones(1, 4)];
@@ -21,7 +21,7 @@ if flag == 1
     display(point);
 end
 
-plot_result(P, Q, point);
+plot_result(P, Q, point, 99);
 
 end
 

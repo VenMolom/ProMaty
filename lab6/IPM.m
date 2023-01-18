@@ -94,7 +94,7 @@ w = norm(A * x - b);
 % check grad
 q = norm(c - A' * y + z);
 
-if q < eps && w < eps && sum(x < -eps) == 0
+if q < eps && w < eps && sum(x < -eps) == 0 && sum(z < -eps) == 0
     exitflag = 1;
     return
 end

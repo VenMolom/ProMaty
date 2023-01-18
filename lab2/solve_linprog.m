@@ -14,7 +14,7 @@ Aeq = [P, -Q; ones(1, 4), zeros(1, 4); zeros(1, 4), ones(1, 4)];
 beq = [zeros(3, 1); ones(2, 1)];
 opt = optimoptions("linprog", "Algorithm", "dual-simplex");
 lb = zeros(8, 1);
-[x, ~, flag, out] = linprog(f, [], [], Aeq, beq, lb, [], opt);
+[x, ~, flag, out] = linprog(-f, [], [], Aeq, beq, lb, [], opt);
 
 if flag == 1
     x = P * x(1:4);
