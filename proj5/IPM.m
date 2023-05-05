@@ -1,4 +1,10 @@
 function [x_ipm, f_ipm, exitflag, it, l_ipm] = IPM(c, A, b, max_it, eps, M)
+% exitflag:
+%   2  - converged to solution not fulfilling WKT
+%   1  - converged to solution fulfilling WKT
+%   0  - maximum iterations reached and not fulfilling WKT
+%  -1  - primary problem unbounded
+%  -2  - dual problem unbounded
 
 n = length(c);
 m = length(b);
@@ -93,8 +99,9 @@ function exitflag = WKT(c, A, b, x, y, z, eps, startflag)
 w = norm(A * x - b);
 % check grad
 q = norm(c - A' * y + z);
+k = x' * z;
 
-if q < eps && w < eps && sum(x < -eps) == 0 && sum(z < -eps) == 0
+if q < eps && w < eps && sum(x < -eps) == 0 && sum(z < -eps) == 0 && abs(k) < eps
     exitflag = 1;
     return
 end
